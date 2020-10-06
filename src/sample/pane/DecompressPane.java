@@ -137,9 +137,9 @@ public class DecompressPane extends VBox implements MyPane {
                     alert1.setHeaderText("解压成功");
                     alert1.setContentText(
                             "解压后的文件已经存储到" + desFile.getPath() + "\n"
-                                    + "解压后文件大小为" + compressResult.fileSize + "MB\n"
+                                    + "解压后文件大小为" + compressResult.originalFileSize/1024.0/1024.0 + "MB\n"
                                     + "解压时间是" + compressResult.timeConsumed + "s\n"
-                                    + "解压速度是" + compressResult.speed + "MB/s"
+                                    + "解压速度是" + compressResult.speed/1024.0/1024.0 + "MB/s"
                     );
                     alert1.show();
 

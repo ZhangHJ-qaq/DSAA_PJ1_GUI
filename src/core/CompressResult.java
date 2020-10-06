@@ -1,7 +1,8 @@
 package core;
 
 public class CompressResult {
-    public double fileSize;
+    public long originalFileSize;
+    public long compressedFileSize;
     public double timeConsumed;
     public double speed;
 }

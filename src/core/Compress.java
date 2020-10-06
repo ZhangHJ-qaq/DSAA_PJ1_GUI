@@ -105,30 +105,33 @@ public class Compress {
 
         CompressResult compressResult = new CompressResult();
 
-        //得到文件大小
-        compressResult.fileSize = Utility.getSize(srcFile) / 1024.0 / 1024.0;
+        //得到源文件的字节数
+        compressResult.originalFileSize = Utility.getSize(srcFile);
 
         long startTime = System.currentTimeMillis();
 
         //如果输入的源路径指向的是一个单独的文件的话
         if (srcFile.isFile()) {
-            Compress.compressSingleFile(srcFile, desFile, compressResult.fileSize * 1024.0 * 1024.0);
+            Compress.compressSingleFile(srcFile, desFile);
 
         } else {//反之如果输入的源路径指向的是一个文件夹的话
-            Compress.compressAFolder(srcFile, desFile, compressResult.fileSize * 1024.0 * 1024.0);
+            Compress.compressAFolder(srcFile, desFile);
         }
 
         long endTime = System.currentTimeMillis();
 
         //得到消耗的时间和压缩速率
         compressResult.timeConsumed = (endTime - startTime) / 1000.0;
-        compressResult.speed = compressResult.fileSize / compressResult.timeConsumed;
+        compressResult.speed = compressResult.originalFileSize / compressResult.timeConsumed;
+
+        //得到压缩后文件的字节数
+        compressResult.compressedFileSize = Utility.getSize(desFile);
 
         return compressResult;
 
     }
 
-    private static void compressSingleFile(File srcFile, File desFile, double fileSize) throws IOException {
+    private static void compressSingleFile(File srcFile, File desFile) throws IOException {
 
         //构造输入输出
         ObjectOutputStream out = new ObjectOutputStream(
@@ -143,7 +146,7 @@ public class Compress {
         HuffmanSingleFileData huffmanSingleFileData = Compress.getCompressedDataOfSingleFile(srcFile.getPath(), null);
 
         huffmanZipData.fileList.add(huffmanSingleFileData);
-        huffmanZipData.originalSize = fileSize;
+        huffmanZipData.originalSize = Utility.getSize(srcFile);
 
         huffmanSingleFileData.originalFileSize = Utility.getSize(srcFile);
 
@@ -154,7 +157,7 @@ public class Compress {
 
     }
 
-    private static void compressAFolder(File srcFile, File desFile, double fileSize) throws IOException {
+    private static void compressAFolder(File srcFile, File desFile) throws IOException {
         ObjectOutputStream out = new ObjectOutputStream(
                 new BufferedOutputStream(new FileOutputStream(desFile))
         );
@@ -162,7 +165,7 @@ public class Compress {
         //初始化压缩后的数据变量，将其类型设定为目录
         HuffmanZipData huffmanZipData = new HuffmanZipData();
         huffmanZipData.type = HuffmanZipData.TYPE_DIRECTORY;
-        huffmanZipData.originalSize = fileSize;
+        huffmanZipData.originalSize = Utility.getSize(srcFile);
 
         //初始化三个静态变量
         rootFolder = srcFile.getParentFile().getPath();
@@ -256,13 +259,13 @@ public class Compress {
 
         long startTime = System.currentTimeMillis();
 
-        ObjectInputStream in=null;
+        ObjectInputStream in = null;
         //获得输入流
         try {
-             in = new ObjectInputStream(
+            in = new ObjectInputStream(
                     new BufferedInputStream(new FileInputStream(srcFile))
             );
-        }catch (Exception e){
+        } catch (Exception e) {
             throw new IOException("The file format is not supported.");
 
         }
@@ -276,7 +279,7 @@ public class Compress {
             throw new IOException("The file format is not supported.");
         }
 
-        double originalSize;
+        long originalSize;
 
         //如果数据中显示压缩的是单一的文件
         if (huffmanZipData.type.equals(HuffmanZipData.TYPE_SINGLE_FILE)) {
@@ -289,12 +292,12 @@ public class Compress {
         long endTime = System.currentTimeMillis();
 
 
-        compressResult.fileSize = originalSize / 1024.0 / 1024.0;
+        compressResult.originalFileSize = originalSize;
 
 
         compressResult.timeConsumed = (endTime - startTime) / 1000.0;
 
-        compressResult.speed = compressResult.fileSize / compressResult.timeConsumed;
+        compressResult.speed = compressResult.originalFileSize / compressResult.timeConsumed;
 
         return compressResult;
 
@@ -305,9 +308,9 @@ public class Compress {
      *
      * @param huffmanZipData 文件数据
      * @param desDir         目标的目录
-     * @return 源文件的字节数
+     * @return 源文件的MB数
      */
-    private static double decompressASingleFile(HuffmanZipData huffmanZipData, File desDir) throws IOException {
+    private static long decompressASingleFile(HuffmanZipData huffmanZipData, File desDir) throws IOException {
 
         //根据desDir中文件的目录及文件数据中存储的原有的文件名，获得真正的解压文件的信息
         File ultimateDesFile =
@@ -334,7 +337,7 @@ public class Compress {
 
     }
 
-    private static double decompressFolder(HuffmanZipData huffmanZipData, File desFile) throws IOException {
+    private static long decompressFolder(HuffmanZipData huffmanZipData, File desFile) throws IOException {
         ArrayList<String> dirList = huffmanZipData.dirList;
 
         //先根据压缩信息内的内容，创建文件夹

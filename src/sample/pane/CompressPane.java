@@ -153,9 +153,11 @@ public class CompressPane extends VBox implements MyPane {
                     alert1.setHeaderText("压缩成功");
                     alert1.setContentText(
                             "压缩后的文件已经存储到" + realDesFile.getPath() + "\n"
-                                    + "压缩文件大小为" + compressResult.fileSize + "MB\n"
+                                    + "压缩前文件大小为" + compressResult.originalFileSize / 1024.0 / 1024.0 + "MB\n"
+                                    + "压缩后文件大小为" + compressResult.compressedFileSize / 1024.0 / 1024.0 + "MB\n"
                                     + "压缩时间是" + compressResult.timeConsumed + "s\n"
-                                    + "压缩速度是" + compressResult.speed + "MB/s"
+                                    + "压缩速度是" + compressResult.speed / 1024.0 / 1024.0 + "MB/s\n"
+                                    + "压缩比是" + (compressResult.compressedFileSize) / (double)compressResult.originalFileSize
                     );
                     alert1.show();
 
